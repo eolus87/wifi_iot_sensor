@@ -1,7 +1,8 @@
 /*********
   Nicolas Gutierrez,
   Heavily influenced by Rui Santos
-  https://randomnerdtutorials.com/esp8266-ds18b20-temperature-sensor-web-server-with-arduino-ide/  
+  https://randomnerdtutorials.com/esp8266-ds18b20-temperature-sensor-web-server-with-arduino-ide/
+  https://www.instructables.com/Calibration-of-DS18B20-Sensor-With-Arduino-UNO/
 *********/
 
 // Including the ESP8266 WiFi library
@@ -16,8 +17,11 @@ const char* password = "YOUR_NETWORK_PASSWORD";
 // GPIO where the DS18B20 is connected to
 const int oneWireBus = 4;
 // TEMP Correction
-const float zero_measure = 0;
-const float hundred_measure = 100;
+const float icing_measure = X;
+const float icing_reference = 0;
+const float boiling_measure = X;
+const float boiling_reference = 99.67; // https://www.omnicalculator.com/chemistry/boiling-point-altitude
+
 // Installation place
 const char* installation_place = "XXXXXXX";
 
@@ -28,6 +32,7 @@ OneWire oneWire(oneWireBus);
 // Pass our oneWire reference to Dallas Temperature sensor 
 DallasTemperature sensors(&oneWire);
 static char temperatureC_str[7];
+const float span_measure = boiling_measure-icing_measure
 
 // only runs once on boot
 void setup() {
@@ -76,7 +81,10 @@ void loop() {
         
         if (c == '\n' && blank_line) {
             sensors.requestTemperatures(); 
+            // Reading sensor
             float temperatureC = sensors.getTempCByIndex(0);
+            // Correcting measure
+            temperatureC = (((temperatureC - icing_measure)*boiling_reference)/span_measure) + icing_reference;
 
             // Check if any reads failed and exit early (to try again).
             if (isnan(temperatureC)) {
