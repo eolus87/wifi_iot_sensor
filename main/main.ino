@@ -1,6 +1,7 @@
 /*********
-  Rui Santos
-  Complete project details at https://randomnerdtutorials.com  
+  Nicolas Gutierrez,
+  Heavily influenced by Rui Santos
+  https://randomnerdtutorials.com/esp8266-ds18b20-temperature-sensor-web-server-with-arduino-ide/  
 *********/
 
 // Including the ESP8266 WiFi library
@@ -8,21 +9,25 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// GPIO where the DS18B20 is connected to
-const int oneWireBus = 4;     
-
+// TO SET UP PER SENSOR
 // Replace with your network details
 const char* ssid = "YOUR_NETWORK_NAME";
 const char* password = "YOUR_NETWORK_PASSWORD";
+// GPIO where the DS18B20 is connected to
+const int oneWireBus = 4;
+// TEMP Correction
+const float zero_measure = 0;
+const float hundred_measure = 100;
+// Installation place
+const char* installation_place = "XXXXXXX";
 
 // Web Server on port 80
 WiFiServer server(80);
-
 // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(oneWireBus);
-
 // Pass our oneWire reference to Dallas Temperature sensor 
 DallasTemperature sensors(&oneWire);
+static char temperatureC_str[7];
 
 // only runs once on boot
 void setup() {
@@ -30,8 +35,6 @@ void setup() {
   Serial.begin(115200);
   delay(10);
 
-  dht.begin();
-  
   // Connecting to WiFi network
   Serial.println();
   Serial.print("Connecting to ");
@@ -53,6 +56,9 @@ void setup() {
   
   // Printing the ESP IP address
   Serial.println(WiFi.localIP());
+
+  // Start the DS18B20 sensor
+  sensors.begin();
 }
 
 // runs over and over again
@@ -69,64 +75,36 @@ void loop() {
         char c = client.read();
         
         if (c == '\n' && blank_line) {
-            // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-            float h = dht.readHumidity();
-            // Read temperature as Celsius (the default)
-            float t = dht.readTemperature();
-            // Read temperature as Fahrenheit (isFahrenheit = true)
-            float f = dht.readTemperature(true);
+            sensors.requestTemperatures(); 
+            float temperatureC = sensors.getTempCByIndex(0);
+
             // Check if any reads failed and exit early (to try again).
-            if (isnan(h) || isnan(t) || isnan(f)) {
-              Serial.println("Failed to read from DHT sensor!");
-              strcpy(celsiusTemp,"Failed");
-              strcpy(fahrenheitTemp, "Failed");
-              strcpy(humidityTemp, "Failed");         
+            if (isnan(temperatureC)) {
+              Serial.println("Failed to read from DS18B20 sensor!");
+              strcpy(temperatureC_str, "Failed");    
             }
             else{
-              // Computes temperature values in Celsius + Fahrenheit and Humidity
-              float hic = dht.computeHeatIndex(t, h, false);       
-              dtostrf(hic, 6, 2, celsiusTemp);             
-              float hif = dht.computeHeatIndex(f, h);
-              dtostrf(hif, 6, 2, fahrenheitTemp);         
-              dtostrf(h, 6, 2, humidityTemp);
-              // You can delete the following Serial.print's, it's just for debugging purposes
-              Serial.print("Humidity: ");
-              Serial.print(h);
+              dtostrf(temperatureC, 6, 2, temperatureC_str);
               Serial.print(" %\t Temperature: ");
-              Serial.print(t);
+              Serial.print(temperatureC_str);
               Serial.print(" *C ");
-              Serial.print(f);
-              Serial.print(" *F\t Heat index: ");
-              Serial.print(hic);
-              Serial.print(" *C ");
-              Serial.print(hif);
-              Serial.print(" *F");
-              Serial.print("Humidity: ");
-              Serial.print(h);
-              Serial.print(" %\t Temperature: ");
-              Serial.print(t);
-              Serial.print(" *C ");
-              Serial.print(f);
-              Serial.print(" *F\t Heat index: ");
-              Serial.print(hic);
-              Serial.print(" *C ");
-              Serial.print(hif);
-              Serial.println(" *F");
             }
+            // HTTP Header
             client.println("HTTP/1.1 200 OK");
             client.println("Content-Type: text/html");
             client.println("Connection: close");
             client.println();
-            // your actual web page that displays temperature and humidity
+            
+            // Actual web page
             client.println("<!DOCTYPE HTML>");
             client.println("<html>");
-            client.println("<head></head><body><h1>ESP8266 - Temperature and Humidity</h1><h3>Temperature in Celsius: ");
-            client.println(celsiusTemp);
-            client.println("*C</h3><h3>Temperature in Fahrenheit: ");
-            client.println(fahrenheitTemp);
-            client.println("*F</h3><h3>Humidity: ");
-            client.println(humidityTemp);
-            client.println("%</h3><h3>");
+            client.println("<head></head><body><h1>");
+            client.println(installation_place);
+            client.println("</h1>");
+            client.println("<h3>Temp ");
+            client.println(temperatureC_str);
+            client.println("</h3>");
+            client.println("</h3><h3>");
             client.println("</body></html>");     
             break;
         }
@@ -145,4 +123,4 @@ void loop() {
     client.stop();
     Serial.println("Client disconnected.");
   }
-}   
+}
