@@ -3,27 +3,31 @@
   Heavily influenced by Rui Santos
   https://randomnerdtutorials.com/esp8266-ds18b20-temperature-sensor-web-server-with-arduino-ide/
   https://www.instructables.com/Calibration-of-DS18B20-Sensor-With-Arduino-UNO/
+  https://mounishkokkula.wordpress.com/low-light-detecto-esp8266-nodemcu/
 *********/
 
 // Including the ESP8266 WiFi library
 #include <ESP8266WiFi.h>
+// Including required libraries for the sensors
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// TO SET UP PER SENSOR
 // Replace with your network details
 const char* ssid = "YOUR_NETWORK_NAME";
 const char* password = "YOUR_NETWORK_PASSWORD";
 // GPIO where the DS18B20 is connected to
 const int oneWireBus = 4;
 // TEMP Correction
-const float icing_measure = X;
+const float icing_measure = 0;
 const float icing_reference = 0;
-const float boiling_measure = X;
+const float boiling_measure = 100;
 const float boiling_reference = 99.67; // https://www.omnicalculator.com/chemistry/boiling-point-altitude
-
 // Installation place
 const char* installation_place = "XXXXXXX";
+
+// Analog Input for the photoresistance
+const int ldrPin = A0;
+int ldrStatus = 0;
 
 // Web Server on port 80
 WiFiServer server(80);
@@ -32,7 +36,7 @@ OneWire oneWire(oneWireBus);
 // Pass our oneWire reference to Dallas Temperature sensor 
 DallasTemperature sensors(&oneWire);
 static char temperatureC_str[7];
-const float span_measure = boiling_measure-icing_measure
+const float span_measure = boiling_measure-icing_measure;
 
 // only runs once on boot
 void setup() {
@@ -64,6 +68,8 @@ void setup() {
 
   // Start the DS18B20 sensor
   sensors.begin();
+  // Setting the photoresistance ping as INPUT
+  pinMode(ldrPin, INPUT);
 }
 
 // runs over and over again
@@ -81,10 +87,12 @@ void loop() {
         
         if (c == '\n' && blank_line) {
             sensors.requestTemperatures(); 
-            // Reading sensor
+            // Reading the Temp Sensor
             float temperatureC = sensors.getTempCByIndex(0);
             // Correcting measure
             temperatureC = (((temperatureC - icing_measure)*boiling_reference)/span_measure) + icing_reference;
+
+            ldrStatus = analogRead(ldrPin); //read the state of the LDR value
 
             // Check if any reads failed and exit early (to try again).
             if (isnan(temperatureC)) {
@@ -111,6 +119,8 @@ void loop() {
             client.println("</h1>");
             client.println("<h3>Temp ");
             client.println(temperatureC_str);
+            client.println("</h3><h3>Light ");
+            client.println(ldrStatus);
             client.println("</h3>");
             client.println("</h3><h3>");
             client.println("</body></html>");     
