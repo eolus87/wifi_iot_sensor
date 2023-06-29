@@ -28,7 +28,7 @@ NOTE: So far this repo uses DS18B20 and Photoresistor
 the header of the http site.
 6) Plug your ESP8266/NodeMCU using a micro USB cable to your computer.
 7) Upload the sketch.
-8) You can 
+8) You can use the "Serial Monitor" to debug the application.
 
 ## Bill of Materials (per sensor):
 - 1x[Plugs](https://www.amazon.co.uk/dp/B093HB26ZK)
