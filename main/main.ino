@@ -20,7 +20,7 @@ const int oneWireBus = 4;
 // TEMP Correction
 const float icing_measure = 0;
 const float icing_reference = 0;
-const float boiling_measure = 100;
+const float boiling_measure = 99.67;
 const float boiling_reference = 99.67; // https://www.omnicalculator.com/chemistry/boiling-point-altitude
 // Installation place
 const char* installation_place = "XXXXXXX";
@@ -90,7 +90,7 @@ void loop() {
             // Reading the Temp Sensor
             float temperatureC = sensors.getTempCByIndex(0);
             // Correcting measure
-            temperatureC = (((temperatureC - icing_measure)*boiling_reference)/span_measure) + icing_reference;
+            //temperatureC = (((temperatureC - icing_measure)*boiling_reference)/span_measure) + icing_reference;
 
             ldrStatus = analogRead(ldrPin); //read the state of the LDR value
 
@@ -117,12 +117,15 @@ void loop() {
             client.println("<head></head><body><h1>");
             client.println(installation_place);
             client.println("</h1>");
+            // Temperature Sensor and units
             client.println("<h3>Temp ");
             client.println(temperatureC_str);
-            client.println("</h3><h3>Light ");
-            client.println(ldrStatus);
-            client.println("</h3>");
-            client.println("</h3><h3>");
+            client.println(" C</h3>");
+            // Light sensor and units
+            client.println("<h3>Light ");
+            client.println(float(ldrStatus)/1024);
+            client.println(" %</h3>");
+            // Tail
             client.println("</body></html>");     
             break;
         }
