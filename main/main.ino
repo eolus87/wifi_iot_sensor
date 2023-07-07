@@ -118,11 +118,11 @@ void loop() {
             client.println(installation_place);
             client.println("</h1>");
             // Temperature Sensor and units
-            client.println("<h3>Temp ");
+            client.println("<h3>temp ");
             client.println(temperatureC_str);
             client.println(" C</h3>");
             // Light sensor and units
-            client.println("<h3>Light ");
+            client.println("<h3>light ");
             client.println(float(ldrStatus)/1024);
             client.println(" %</h3>");
             // Tail
