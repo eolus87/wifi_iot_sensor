@@ -42,7 +42,7 @@ the header of the http site.
 - 1x3D Printed case - (This is WPI, at the moment but stay tuned!)
 
 ## 3D Printing case
-This is WIP, it will be updated once I have designed and printed it and probably uploaded it to thingiverse/pinshape.
+Thingiverse [link](https://www.thingiverse.com/thing:6115724) 
 
 ## Wiring
 This is WIP as well. Stay tuned!
