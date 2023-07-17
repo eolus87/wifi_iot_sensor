@@ -24,6 +24,10 @@ const float boiling_measure = 99.67;
 const float boiling_reference = 99.67; // https://www.omnicalculator.com/chemistry/boiling-point-altitude
 // Installation place
 const char* installation_place = "XXXXXXX";
+const char* host_name = "xxxx_xxx_temp";
+IPAddress ip(192,168,X,XX); // the IP address for sensor
+IPAddress gateway(192,168,X,XX);
+IPAddress subnet(255,255,X,X);
 
 // Analog Input for the photoresistance
 const int ldrPin = A0;
@@ -49,6 +53,9 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
   
+  // Configuration and start of Wi-Fi
+  WiFi.hostname(host_name);
+    WiFi.config(ip, gateway, subnet);
   WiFi.begin(ssid, password);
   
   while (WiFi.status() != WL_CONNECTED) {
