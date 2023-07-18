@@ -28,6 +28,7 @@ const char* host_name = "xxxx_xxx_temp";
 IPAddress ip(192,168,X,XX); // the IP address for sensor
 IPAddress gateway(192,168,X,XX);
 IPAddress subnet(255,255,X,X);
+bool debug_mode = false; // true or false
 
 // Analog Input for the photoresistance
 const int ldrPin = A0;
@@ -85,7 +86,7 @@ void loop() {
   WiFiClient client = server.available();
   
   if (client) {
-    Serial.println("New client");
+    if (debug_mode) {Serial.println("New client");}
     // bolean to locate when the http request ends
     boolean blank_line = true;
     while (client.connected()) {
@@ -103,14 +104,19 @@ void loop() {
 
             // Check if any reads failed and exit early (to try again).
             if (isnan(temperatureC)) {
-              Serial.println("Failed to read from DS18B20 sensor!");
+              if (debug_mode) {Serial.println("Failed to read from DS18B20 sensor!");}
               strcpy(temperatureC_str, "Failed");    
             }
             else{
               dtostrf(temperatureC, 6, 2, temperatureC_str);
-              Serial.print(" %\t Temperature: ");
-              Serial.print(temperatureC_str);
-              Serial.print(" *C ");
+              if (debug_mode)
+              {
+                Serial.print("%\t Temperature: ");
+                Serial.print(temperatureC_str);
+                Serial.println(" *C ");
+                Serial.print("%\t Light: ");
+                Serial.println(float(ldrStatus)/1024);
+              }
             }
             // HTTP Header
             client.println("HTTP/1.1 200 OK");
@@ -122,7 +128,8 @@ void loop() {
             client.println("<!DOCTYPE HTML>");
             client.println("<html>");
             client.println("<head></head><body><h1>");
-            client.println(installation_place);
+            client.print(installation_place);
+            if (debug_mode) {client.print("-DEBUG");}
             client.println("</h1>");
             // Temperature Sensor and units
             client.println("<h3>temp ");
@@ -147,8 +154,8 @@ void loop() {
       }
     }  
     // closing the client connection
-    delay(1);
+    delay(50);
     client.stop();
-    Serial.println("Client disconnected.");
+    if (debug_mode) {Serial.println("Client disconnected.");}
   }
 }
